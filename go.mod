@@ -1,4 +1,4 @@
-module gemini-reviewer-core
+module github.com/shouni/gemini-reviewer-core
 
 go 1.25
 
