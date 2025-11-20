@@ -46,7 +46,7 @@ func NewMarkdownToHtmlRunner(ctx context.Context) (MarkdownToHtmlRunner, error) 
 
 // Run は MarkdownToHtmlRunner インターフェースを満たします。
 func (a *MarkdownConverterAdapter) Run(ctx context.Context, markdownContent []byte) (io.Reader, error) {
-	buffer, err := a.coreRunner.ConvertMarkdownToHtml(ctx, ReviewTitle, markdownContent)
+	buffer, err := a.coreRunner.ConvertMarkdownToHtml(ctx, "", markdownContent)
 	if err != nil {
 		return nil, fmt.Errorf("MarkdownからHTMLへの変換に失敗: %w", err)
 	}
