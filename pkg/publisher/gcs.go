@@ -18,34 +18,31 @@ const (
 	reviewTitle     = "AIコードレビュー結果"
 )
 
-// ReviewMetadata はレポート生成および保存に必要なメタデータです。
-type ReviewMetadata struct {
+// ReviewData はレポート生成に必要なすべての情報をまとめた構造体です。
+type ReviewData struct {
 	RepoURL        string
 	BaseBranch     string
 	FeatureBranch  string
-	DestinationURI string
+	ReviewMarkdown string
 }
 
 // OutputWriter は go-remote-io の Writer が満たすべきインターフェースです。
 type OutputWriter interface {
-	WriteToGCS(ctx context.Context, bucket, object string, reader io.Reader, contentType string) error
+	WriteToGCS(ctx context.Context, bucketName, objectPath string, reader io.Reader, contentType string) error
 }
 
-// GCSPublisher はレビュー結果をGCSに公開するための構造体です。
+// GCSPublisher
 type GCSPublisher struct {
-	writer OutputWriter // 生成済みのWriter
+	writer OutputWriter
 }
 
-// NewGCSPublisher は GCSPublisher のコンストラクタです。
+// NewGCSPublisher
 func NewGCSPublisher(ioFactory factory.Factory) (*GCSPublisher, error) {
-	// 1. Writerの生成 (Fail Fast)
-	// アプリケーション起動時にGCSクライアント等の初期化エラーを検知します。
 	writer, err := ioFactory.NewOutputWriter()
 	if err != nil {
 		return nil, fmt.Errorf("OutputWriterの生成に失敗しました: %w", err)
 	}
 
-	// インターフェースへのキャストチェック
 	w, ok := writer.(OutputWriter)
 	if !ok {
 		return nil, fmt.Errorf("writer が OutputWriter インターフェースを実装していません")
@@ -56,25 +53,19 @@ func NewGCSPublisher(ioFactory factory.Factory) (*GCSPublisher, error) {
 	}, nil
 }
 
-// Publish はメインの公開処理を行います。
-// 指定された DestinationURI を解析し、MarkdownをHTMLに変換してアップロードします。
-func (p *GCSPublisher) Publish(ctx context.Context, reviewMarkdown string, meta ReviewMetadata) error {
-	// 1. 保存先URIの解析 (Runtime)
-	// ヘルパーメソッドを呼び出します（ここで空チェックも行われます）
-	bucketName, objectPath, err := p.parseDestination(meta.DestinationURI)
+// Publish メイン処理
+func (p *GCSPublisher) Publish(ctx context.Context, uri string, data ReviewData) error {
+	bucketName, objectPath, err := remoteio.ParseGCSURI(uri)
 	if err != nil {
-		return err // parseDestination 内でエラーメッセージは整形済み
+		return err
 	}
 
-	// 2. Markdown -> HTML 変換
-	htmlReader, err := p.convertMarkdownToHTML(ctx, reviewMarkdown, meta)
+	htmlReader, err := p.convertMarkdownToHTML(ctx, data)
 	if err != nil {
 		return fmt.Errorf("HTML変換に失敗しました: %w", err)
 	}
 
-	slog.Info("GCSへアップロード開始", "bucket", bucketName, "path", objectPath)
-
-	// 3. Upload処理
+	slog.Info("GCSへアップロード開始", "bucketName", bucketName, "objectPath", objectPath)
 	if err := p.writer.WriteToGCS(ctx, bucketName, objectPath, htmlReader, contentTypeHTML); err != nil {
 		return fmt.Errorf("GCSへの書き込みに失敗しました: %w", err)
 	}
@@ -82,39 +73,25 @@ func (p *GCSPublisher) Publish(ctx context.Context, reviewMarkdown string, meta 
 	return nil
 }
 
-// convertMarkdownToHTML はMarkdownをHTMLに変換し、ヘッダー情報を付与する内部ヘルパーメソッドです。
-func (p *GCSPublisher) convertMarkdownToHTML(ctx context.Context, reviewMarkdown string, meta ReviewMetadata) (io.Reader, error) {
+// convertMarkdownToHTML (ヘルパー)
+func (p *GCSPublisher) convertMarkdownToHTML(ctx context.Context, data ReviewData) (io.Reader, error) {
 	markdownRunner, err := adapters.NewMarkdownToHtmlRunner(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	// meta の情報を使ってレポートのヘッダーを作成
+	// data の情報を使ってレポートのヘッダーを作成
 	summaryMarkdown := fmt.Sprintf(
 		"レビュー対象リポジトリ: `%s`\n\nブランチ差分: `%s` ← `%s`\n\n",
-		meta.RepoURL,
-		meta.BaseBranch,
-		meta.FeatureBranch,
+		data.RepoURL,
+		data.BaseBranch,
+		data.FeatureBranch,
 	)
 
 	var buffer bytes.Buffer
 	buffer.WriteString("# " + reviewTitle + "\n\n")
 	buffer.WriteString(summaryMarkdown + "\n\n")
-	buffer.WriteString(reviewMarkdown)
+	buffer.WriteString(data.ReviewMarkdown) // 本文を追加
 
 	return markdownRunner.Run(ctx, buffer.Bytes())
-}
-
-// parseDestination はURIを解析し、エラーハンドリングをラップします。
-func (p *GCSPublisher) parseDestination(uri string) (string, string, error) {
-	if uri == "" {
-		return "", "", fmt.Errorf("保存先URI (DestinationURI) が空です")
-	}
-
-	bucket, object, err := remoteio.ParseGCSURI(uri)
-	if err != nil {
-		// エラーメッセージの整形をここに閉じ込められます
-		return "", "", fmt.Errorf("無効な保存先URIです (%s): %w", uri, err)
-	}
-	return bucket, object, nil
 }
