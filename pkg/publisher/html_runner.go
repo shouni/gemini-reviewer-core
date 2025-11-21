@@ -1,4 +1,4 @@
-package adapters
+package publisher
 
 import (
 	"context"
@@ -8,8 +8,6 @@ import (
 	"github.com/shouni/go-text-format/pkg/builder"
 	"github.com/shouni/go-text-format/pkg/md2htmlrunner"
 )
-
-const ReviewTitle = "AIコードレビュー結果"
 
 // MarkdownToHtmlRunner は、Markdown コンテンツを完全な HTML ドキュメントに変換する契約です。
 // Runner の ConvertMarkdownToHtml のシグネチャに合わせます。

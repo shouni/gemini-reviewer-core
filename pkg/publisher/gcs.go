@@ -7,7 +7,6 @@ import (
 	"io"
 	"log/slog"
 
-	"github.com/shouni/gemini-reviewer-core/pkg/adapters"
 	"github.com/shouni/go-remote-io/pkg/factory"
 	"github.com/shouni/go-remote-io/pkg/remoteio"
 )
@@ -75,7 +74,7 @@ func (p *GCSPublisher) Publish(ctx context.Context, uri string, data ReviewData)
 
 // convertMarkdownToHTML (ヘルパー)
 func (p *GCSPublisher) convertMarkdownToHTML(ctx context.Context, data ReviewData) (io.Reader, error) {
-	markdownRunner, err := adapters.NewMarkdownToHtmlRunner(ctx)
+	markdownRunner, err := NewMarkdownToHtmlRunner(ctx)
 	if err != nil {
 		return nil, err
 	}
