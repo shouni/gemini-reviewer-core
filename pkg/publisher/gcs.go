@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"log/slog"
+	"time"
 
 	"github.com/shouni/go-remote-io/pkg/factory"
 	"github.com/shouni/go-remote-io/pkg/remoteio"
@@ -79,12 +80,15 @@ func (p *GCSPublisher) convertMarkdownToHTML(ctx context.Context, data ReviewDat
 		return nil, err
 	}
 
-	// data の情報を使ってレポートのヘッダーを作成
+	now := time.Now()
+	reviewTimeStr := now.Format("2006/01/02 15:04:05 MST")
+
 	summaryMarkdown := fmt.Sprintf(
-		"レビュー対象リポジトリ: `%s`\n\nブランチ差分: `%s` ← `%s`\n\n",
+		"レビュー対象リポジトリ: `%s`\n\nブランチ差分: `%s` ← `%s`\n\nレビュー実行日時: *%s*\n\n",
 		data.RepoURL,
 		data.BaseBranch,
 		data.FeatureBranch,
+		reviewTimeStr,
 	)
 
 	var buffer bytes.Buffer
