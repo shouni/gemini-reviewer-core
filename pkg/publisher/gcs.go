@@ -6,10 +6,10 @@ import (
 	"fmt"
 	"io"
 	"log/slog"
-	"time"
 
 	"github.com/shouni/go-remote-io/pkg/factory"
 	"github.com/shouni/go-remote-io/pkg/remoteio"
+	"github.com/shouni/go-utils/timeutil"
 )
 
 // 定数定義
@@ -80,8 +80,8 @@ func (p *GCSPublisher) convertMarkdownToHTML(ctx context.Context, data ReviewDat
 		return nil, err
 	}
 
-	now := time.Now()
-	reviewTimeStr := now.Format("2006/01/02 15:04:05 MST")
+	nowJST := timeutil.NowJST()
+	reviewTimeStr := nowJST.Format("2006/01/02 15:04:05 JST")
 
 	summaryMarkdown := fmt.Sprintf(
 		"レビュー対象リポジトリ: `%s`\n\nブランチ差分: `%s` ← `%s`\n\nレビュー実行日時: *%s*\n\n",
