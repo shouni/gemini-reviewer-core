@@ -37,8 +37,8 @@ type GCSPublisher struct {
 }
 
 // NewGCSPublisher
-func NewGCSPublisher(gcsFactory gcsfactory.Factory) (*GCSPublisher, error) {
-	writer, err := gcsFactory.NewOutputWriter()
+func NewGCSPublisher(factory gcsfactory.Factory) (*GCSPublisher, error) {
+	writer, err := factory.NewOutputWriter()
 	if err != nil {
 		return nil, fmt.Errorf("OutputWriterの生成に失敗しました: %w", err)
 	}
