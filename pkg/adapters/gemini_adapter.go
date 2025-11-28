@@ -10,7 +10,7 @@ import (
 
 const (
 	// コードレビューの一貫性を優先するため、低い温度に設定
-	defaultGeminiTemperature = float32(0.2)
+	defaultGeminiTemperature = float32(0.1)
 	// 一時的なネットワークエラーやAPIのレート制限に対応するためのリトライ回数
 	defaultGeminiMaxRetries = uint64(3)
 )
