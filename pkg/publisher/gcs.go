@@ -7,7 +7,7 @@ import (
 	"io"
 	"log/slog"
 
-	"github.com/shouni/go-remote-io/pkg/factory"
+	"github.com/shouni/go-remote-io/pkg/gcsfactory"
 	"github.com/shouni/go-remote-io/pkg/remoteio"
 	"github.com/shouni/go-utils/timeutil"
 )
@@ -37,8 +37,8 @@ type GCSPublisher struct {
 }
 
 // NewGCSPublisher
-func NewGCSPublisher(ioFactory factory.Factory) (*GCSPublisher, error) {
-	writer, err := ioFactory.NewOutputWriter()
+func NewGCSPublisher(gcsFactory gcsfactory.Factory) (*GCSPublisher, error) {
+	writer, err := gcsFactory.NewOutputWriter()
 	if err != nil {
 		return nil, fmt.Errorf("OutputWriterの生成に失敗しました: %w", err)
 	}
