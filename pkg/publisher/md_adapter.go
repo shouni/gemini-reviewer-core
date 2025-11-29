@@ -22,9 +22,6 @@ type MarkdownConverterAdapter struct {
 }
 
 func NewMarkdownToHtmlRunner(ctx context.Context) (MarkdownToHtmlRunner, error) {
-	// (ctx は NewBuilder や BuildMarkdownToHtmlRunner が将来必要とする可能性を考慮し、
-	//  現在は使用していなくてもシグネチャを合わせる)
-
 	// 1. go-text-format の Builder を初期化 (依存関係の構築)
 	md2htmlBuilder, err := builder.NewBuilder()
 	if err != nil {
@@ -44,6 +41,8 @@ func NewMarkdownToHtmlRunner(ctx context.Context) (MarkdownToHtmlRunner, error) 
 
 // Run は MarkdownToHtmlRunner インターフェースを満たします。
 func (a *MarkdownConverterAdapter) Run(ctx context.Context, markdownContent []byte) (io.Reader, error) {
+	// ConvertMarkdownToHtml は、通常、タイトルや言語を受け取ります。
+	// ここでは、タイトルはレビュー結果内で #H1 として提供されるため、空文字を渡します。
 	buffer, err := a.coreRunner.ConvertMarkdownToHtml(ctx, "", markdownContent)
 	if err != nil {
 		return nil, fmt.Errorf("MarkdownからHTMLへの変換に失敗: %w", err)
