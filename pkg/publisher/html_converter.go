@@ -41,13 +41,3 @@ func convertMarkdownToHTML(ctx context.Context, data ReviewData) (io.Reader, err
 	// 実際の MarkdownToHtmlRunner の Run メソッドを実行
 	return markdownRunner.Run(ctx, buffer.Bytes())
 }
-
-// convertMarkdownToHTML (GCSPublisherのヘルパー)
-func (p *GCSPublisher) convertMarkdownToHTML(ctx context.Context, data ReviewData) (io.Reader, error) {
-	return convertMarkdownToHTML(ctx, data)
-}
-
-// convertMarkdownToHTML (S3Publisherのヘルパー)
-func (p *S3Publisher) convertMarkdownToHTML(ctx context.Context, data ReviewData) (io.Reader, error) {
-	return convertMarkdownToHTML(ctx, data)
-}

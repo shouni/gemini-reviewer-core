@@ -49,7 +49,7 @@ func (p *GCSPublisher) Publish(ctx context.Context, uri string, data ReviewData)
 		return err
 	}
 
-	htmlReader, err := p.convertMarkdownToHTML(ctx, data)
+	htmlReader, err := convertMarkdownToHTML(ctx, data)
 	if err != nil {
 		return fmt.Errorf("HTML変換に失敗しました: %w", err)
 	}
