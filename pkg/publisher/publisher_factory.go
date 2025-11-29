@@ -1,7 +1,6 @@
 package publisher
 
 import (
-	"context"
 	"fmt"
 	"net/url"
 
@@ -18,7 +17,7 @@ type FactoryRegistry struct {
 
 // NewPublisher は、指定されたURIスキームに基づいて、適切な Publisher 実装を構築して返します。
 // URIがどのスキームにも一致しない場合、エラーを返します。
-func NewPublisher(ctx context.Context, uri string, registry FactoryRegistry) (Publisher, error) {
+func NewPublisher(uri string, registry FactoryRegistry) (Publisher, error) {
 	// 1. URIをパースし、スキームを抽出
 	u, err := url.Parse(uri)
 	if err != nil {
