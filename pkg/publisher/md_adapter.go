@@ -41,7 +41,7 @@ func NewMarkdownToHtmlRunner(ctx context.Context) (MarkdownToHtmlRunner, error) 
 	}, nil
 }
 
-// Run は MarkdownToHtmlRunner インターフェースを満たします。A
+// Run は MarkdownToHtmlRunner インターフェースを満たします。
 func (a *MarkdownConverterAdapter) Run(ctx context.Context, markdownContent []byte) (io.Reader, error) {
 	// ConvertMarkdownToHtml は、通常、タイトルや言語を受け取ります。
 	// ここでは、タイトルはレビュー結果内で #H1 として提供されるため、空文字を渡します。
