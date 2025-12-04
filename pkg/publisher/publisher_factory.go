@@ -1,6 +1,7 @@
 package publisher
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/shouni/go-remote-io/pkg/gcsfactory"
@@ -33,4 +34,50 @@ func NewPublisher(uri string, registry FactoryRegistry) (Publisher, error) {
 	}
 
 	return nil, fmt.Errorf("サポートされていないURIスキームです: %s (サポート: gs://, s3://)", uri)
+}
+
+// NewPublisherAndSigner は、URIに基づいてPublisherとURLSignerを初期化します。
+func NewPublisherAndSigner(ctx context.Context, targetURI string) (Publisher, remoteio.URLSigner, error) {
+	registry := FactoryRegistry{}
+	var urlSigner remoteio.URLSigner
+	var err error
+
+	// Publisherの動的生成
+	publisher, err := NewPublisher(targetURI, registry)
+	if err != nil {
+		return nil, nil, fmt.Errorf("パブリッシャーの初期化に失敗しました: %w", err)
+	}
+
+	// GCSまたはS3のどちらか必要なファクトリのみを初期化し、RegistryとSignerを設定
+	if remoteio.IsGCSURI(targetURI) {
+		gcsFactory, err := gcsfactory.NewGCSClientFactory(ctx)
+		if err != nil {
+			return nil, nil, fmt.Errorf("GCSクライアントファクトリの初期化に失敗しました: %w", err)
+		}
+		registry.GCSFactory = gcsFactory
+
+		signer, err := gcsFactory.NewGCSURLSigner()
+		if err != nil {
+			return nil, nil, fmt.Errorf("GCS URL Signerの取得に失敗しました: %w", err)
+		}
+		urlSigner = signer
+
+	} else if remoteio.IsS3URI(targetURI) {
+		s3Factory, err := s3factory.NewS3ClientFactory(ctx)
+		if err != nil {
+			return nil, nil, fmt.Errorf("S3クライアントファクトリの初期化に失敗しました (URI: %s): %w", targetURI, err)
+		}
+		registry.S3Factory = s3Factory
+
+		signer, err := s3Factory.NewS3URLSigner()
+		if err != nil {
+			return nil, nil, fmt.Errorf("S3 URL Signerの取得に失敗しました: %w", err)
+		}
+		urlSigner = signer
+
+	} else {
+		return nil, nil, fmt.Errorf("未対応のストレージURIです: %s", targetURI)
+	}
+
+	return publisher, urlSigner, nil
 }
