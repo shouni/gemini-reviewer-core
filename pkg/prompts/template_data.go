@@ -12,7 +12,7 @@ type TemplateData struct {
 var (
 	//go:embed prompt_release.md
 	releasePromptTemplate string
-	//go:embed prompt_detail.md
+	//go:embed prompt_detail_2.md
 	detailPromptTemplate string
 )
 
