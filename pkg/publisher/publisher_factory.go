@@ -42,17 +42,12 @@ func NewPublisherAndSigner(ctx context.Context, targetURI string) (Publisher, re
 	var urlSigner remoteio.URLSigner
 	var err error
 
-	// Publisherの動的生成
-	publisher, err := NewPublisher(targetURI, registry)
-	if err != nil {
-		return nil, nil, fmt.Errorf("パブリッシャーの初期化に失敗しました: %w", err)
-	}
-
 	// GCSまたはS3のどちらか必要なファクトリのみを初期化し、RegistryとSignerを設定
-	if remoteio.IsGCSURI(targetURI) {
+	switch { // switch文による拡張性の向上
+	case remoteio.IsGCSURI(targetURI):
 		gcsFactory, err := gcsfactory.NewGCSClientFactory(ctx)
 		if err != nil {
-			return nil, nil, fmt.Errorf("GCSクライアントファクトリの初期化に失敗しました: %w", err)
+			return nil, nil, fmt.Errorf("GCSクライアントファクトリの初期化に失敗しました (URI: %s): %w", targetURI, err)
 		}
 		registry.GCSFactory = gcsFactory
 
@@ -62,7 +57,7 @@ func NewPublisherAndSigner(ctx context.Context, targetURI string) (Publisher, re
 		}
 		urlSigner = signer
 
-	} else if remoteio.IsS3URI(targetURI) {
+	case remoteio.IsS3URI(targetURI):
 		s3Factory, err := s3factory.NewS3ClientFactory(ctx)
 		if err != nil {
 			return nil, nil, fmt.Errorf("S3クライアントファクトリの初期化に失敗しました (URI: %s): %w", targetURI, err)
@@ -75,8 +70,14 @@ func NewPublisherAndSigner(ctx context.Context, targetURI string) (Publisher, re
 		}
 		urlSigner = signer
 
-	} else {
+	default:
 		return nil, nil, fmt.Errorf("未対応のストレージURIです: %s", targetURI)
+	}
+
+	// Publisherの動的生成
+	publisher, err := NewPublisher(targetURI, registry)
+	if err != nil {
+		return nil, nil, fmt.Errorf("パブリッシャーの初期化に失敗しました: %w", err)
 	}
 
 	return publisher, urlSigner, nil
