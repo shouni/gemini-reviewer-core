@@ -5,6 +5,8 @@
 [![GitHub tag (latest by date)](https://img.shields.io/github/v/tag/shouni/gemini-reviewer-core)](https://github.com/shouni/gemini-reviewer-core/tags)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
+## 🚀 概要 (About) - ビジネスロジックに集中させる、Git & Gemini抽象化レイヤー
+
 **Gemini Reviewer Core** は、Google Gemini API を活用し、Gitリポジトリのブランチ間の差分を分析してAIコードレビューを自動生成するための**コアライブラリ**です。
 
 本ライブラリは、**CLIツール**や**Webアプリケーション**の共通基盤として設計されています。Git操作、AI通信、プロンプト生成といった「ビジネスロジック」に加え、HTML変換や結果保存を行う公開層（Publisher）を提供します。これにより、利用側はインフラの実装詳細を意識することなく、レビュー結果の生成から公開までを一貫して行えます。
@@ -26,11 +28,12 @@
 | 要素 | 技術 / ライブラリ | 役割 |
 | :--- | :--- | :--- |
 | **言語** | **Go (Golang)** | ライブラリの開発言語。 |
-| **Git 操作** | **go-git** (`adapters`層) | クローン、フェッチ、**3-dot diff** (共通祖先からの差分) の取得まですべてを Go のコード内で完結させ、**SSH認証とホストキー検証の設定**を統合しました。 |
-| **AI モデル** | **Google Gemini API** (`adapters`層) | 取得したコード差分を分析し、レビューコメントを生成するために使用します。 |
-| **Markdown to HTML** | **`go-text-format`** (`publisher`層) | AIが出力したMarkdown形式のレビュー結果を、スタイル付きの完全なHTMLドキュメントに**変換**するために使用します。|
-| **ストレージ操作** | **`go-remote-io`** (`publisher`層) | **GCS/S3** 等のクラウドストレージへのアップロード処理を抽象化し、CLIとWebアプリで接続処理（Factory）を共通化するために使用します。 |
+| **Git 操作** | **`github.com/go-git/go-git/v5`** | クローン、フェッチ、**3-dot diff** (共通祖先からの差分) の取得まですべてを Go のコード内で完結させ、**SSH認証とホストキー検証の設定**を統合しました。 |
+| **AI通信** | **`google.golang.org/genai` (Go SDK)** | Gemini APIへのアクセス。リトライ機構付きでSDKをラッピングし、堅牢な通信を実現します。 |
+| **Markdown to HTML** | **[`github.com/shouni/go-text-format`](https://github.com/shouni/go-text-format)** | AIが出力したMarkdown形式のレビュー結果を、スタイル付きの完全なHTMLドキュメントに**変換**するために使用します。|
+| **ストレージ操作** | **[`github.com/shouni/go-remote-io`](https://github.com/shouni/go-remote-io)** | **GCS/S3** 等のクラウドストレージへのアップロード処理を抽象化し、CLIとWebアプリで接続処理（Factory）を共通化するために使用します。 |
 | **プロンプト管理** | **`text/template` + `embed`** | レビューモード（Release/Detail）に応じたプロンプトテンプレートをバイナリに埋め込み、動的に生成します。 |
+| **ロギング** | **log/slog** | 構造化されたログ (`key=value`) に完全移行。詳細なデバッグ情報が必要な際に、ログレベルを上げて柔軟に対応できます。 |
 
 ---
 
@@ -66,23 +69,23 @@
 ```text
 gemini-reviewer-core
 ├── pkg
-│   ├── adapters  \# 外部システムへの接続層 (Port and Adapter パターン)
-│   │   ├── gemini\_adapter.go \# Gemini API通信の実装
-│   │   └── git\_service.go    \# go-gitを使用したGit操作の実装
-│   │
-│   ├── publisher \# 結果の変換・出力・公開層
-│   │   ├── publisher.go      \# Publisherインターフェースとデータ構造 (コア抽象化)
-│   │   ├── publisher\_factory.go \# URIスキームに基づくPublisherのファクトリ
-│   │   ├── gcs\_publisher.go  \# GCSへの公開実装
-│   │   ├── s3\_publisher.go   \# S3への公開実装
-│   │   ├── html\_converter.go \# GCS/S3で共通利用するHTML変換ロジック
-│   │   └── md\_adapter.go     \# 外部Markdownライブラリのアダプター
-│   │
-│   └── prompts   \# AIプロンプトのデータとロジック管理
-│       ├── template\_builder.go \# テンプレートの選択とデータ注入ロジック
-│       ├── template\_data.go    \# プロンプトの入力データ構造
-│       └── template\_manager.go \# go:embed される生プロンプトファイルの管理
-````
+│   ├── adapters  # 外部システムへの接続層 (Port and Adapter パターン)
+│   │   ├── gemini_adapter.go # Gemini API通信の実装
+│   │   └── git_service.go    # go-gitを使用したGit操作の実装
+│   │
+│   ├── publisher # 結果の変換・出力・公開層
+│   │   ├── publisher.go      # Publisherインターフェースとデータ構造 (コア抽象化)
+│   │   ├── publisher_factory.go # URIスキームに基づくPublisherのファクトリ
+│   │   ├── gcs_publisher.go  # GCSへの公開実装
+│   │   ├── s3_publisher.go   # S3への公開実装
+│   │   ├── html_converter.go # GCS/S3で共通利用するHTML変換ロジック
+│   │   └── md_adapter.go     # 外部Markdownライブラリのアダプター
+│   │
+│   └── prompts   # AIプロンプトのデータとロジック管理
+│       ├── template_builder.go # テンプレートの選択とデータ注入ロジック
+│       ├── template_data.go    # プロンプトの入力データ構造
+│       └── template_manager.go # go:embed される生プロンプトファイルの管理
+```
 
 -----
 
