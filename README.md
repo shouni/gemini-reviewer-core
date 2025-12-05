@@ -5,7 +5,7 @@
 [![GitHub tag (latest by date)](https://img.shields.io/github/v/tag/shouni/gemini-reviewer-core)](https://github.com/shouni/gemini-reviewer-core/tags)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-## 🚀 概要 (About) - WebベースのAIレビューオーケストレーター
+## 🚀 概要 (About) - ビジネスロジックに集中させる、Git & Gemini抽象化レイヤー
 
 **Gemini Reviewer Core** は、Google Gemini API を活用し、Gitリポジトリのブランチ間の差分を分析してAIコードレビューを自動生成するための**コアライブラリ**です。
 
