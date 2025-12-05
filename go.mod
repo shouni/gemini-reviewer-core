@@ -3,11 +3,11 @@ module github.com/shouni/gemini-reviewer-core
 go 1.25
 
 require (
-	github.com/go-git/go-git/v5 v5.16.3
+	github.com/go-git/go-git/v5 v5.16.4
 	github.com/shouni/go-ai-client/v2 v2.0.7
 	github.com/shouni/go-remote-io v1.1.0
 	github.com/shouni/go-text-format v1.0.6
-	github.com/shouni/go-utils v1.0.14
+	github.com/shouni/go-utils v1.0.15
 	golang.org/x/crypto v0.45.0
 )
 
